@@ -19,8 +19,8 @@ def gradient_descent(X, y, theta, alpha, num_iters):
     m, n = X.shape
     costs = []
 
-    for itr in range(num_iters):
-        for j in range(n):
+    for _ in range(num_iters):
+        for j in range(n):  # TODO - Haal deze lus eruit, maak factorieel
             # In steps:
             # h = (np.dot(X, theta.T) - y)
             # xj = X[:, [j]]
