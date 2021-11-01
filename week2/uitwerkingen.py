@@ -18,65 +18,54 @@ def sigmoid(z):
 
 # ==== OPGAVE 2b ====
 def get_y_matrix(y, m):
-    cols = [e[0] if e[0] != 10 else 0 for e in y]
-    rows = [i for i in range(len(cols))]
-    data = [1 for _ in range(len(cols))]
-    width = 10
-    y_vec = csr_matrix((data, (rows, cols)), shape=(len(rows), width)).toarray()
-    print(y_vec)
+    cols = [e[0] if e[0] != 10 else 0 for e in y]  # TODO numpy.where
+    rows = [i for i in range(m)]
+    data = [1 for _ in range(m)]
+    width = np.max(y)
+    y_mat = csr_matrix((data, (rows, cols)), shape=(len(rows), width)).toarray()
+    # print(y_mat)  # print the y matrix
 
-    return y_vec
+    return y_mat
 
 
 # ==== OPGAVE 2c ====
 # ===== deel 1: =====
 def predict_number(Theta1, Theta2, X):
-    # Deze methode moet een matrix teruggeven met de output van het netwerk
-    # gegeven de waarden van Theta1 en Theta2. Elke regel in deze matrix 
-    # is de waarschijnlijkheid dat het sample op die positie (i) het getal
-    # is dat met de kolom correspondeert.
+    # Stap 1 - Input layer (L1)
+    a1 = np.c_[np.ones(X.shape[0]), X]  # Voeg enen toe op index 0
 
-    # De matrices Theta1 en Theta2 corresponderen met het gewicht tussen de
-    # input-laag en de verborgen laag, en tussen de verborgen laag en de
-    # output-laag, respectievelijk. 
+    # Stap 2 - Hidden layer (L2)
+    z2 = np.dot(Theta1, a1.T)  # De sommatie van Theta1 a1
+    a2 = sigmoid(z2)  # De activatie (sigmoid) van z2
+    a2 = np.c_[np.ones(a2.shape[1]), a2.T]
 
-    # Een mogelijk stappenplan kan zijn:
+    # Stap 3 - Output layer (L3)
+    z3 = np.dot(Theta2, a2.T)  # De sommatie van Theta2 a2
+    a3 = sigmoid(z3)  # De activatie (sigmoid) van z3
 
-    #    1. voeg enen toe aan de gegeven matrix X; dit is de input-matrix a1
-    #    2. roep de sigmoid-functie van hierboven aan met a1 als actuele
-    #       parameter: dit is de variabele a2
-    #    3. voeg enen toe aan de matrix a2, dit is de input voor de laatste
-    #       laag in het netwerk
-    #    4. roep de sigmoid-functie aan op deze a2; dit is het uiteindelijke
-    #       resultaat: de output van het netwerk aan de buitenste laag.
-
-    # Voeg enen toe aan het begin van elke stap en reshape de uiteindelijke
-    # vector zodat deze dezelfde dimensionaliteit heeft als y in de exercise.
-
-    pass
-
+    return a3.T
 
 # ===== deel 2: =====
 def compute_cost(Theta1, Theta2, X, y):
-    # Deze methode maakt gebruik van de methode predictNumber() die je hierboven hebt
-    # geïmplementeerd. Hier wordt het voorspelde getal vergeleken met de werkelijk 
-    # waarde (die in de parameter y is meegegeven) en wordt de totale kost van deze
-    # voorspelling (dus met de huidige waarden van Theta1 en Theta2) berekend en
-    # geretourneerd.
-    # Let op: de y die hier binnenkomt is de m×1-vector met waarden van 1...10. 
-    # Maak gebruik van de methode get_y_matrix() die je in opgave 2a hebt gemaakt
-    # om deze om te zetten naar een matrix. 
+    m = y.shape[0]
+    y_mat = get_y_matrix(y, m)
+    h = predict_number(Theta1, Theta2, X)
 
-    pass
+    yLogH = y_mat * np.log(h)
+    yLogHMin = (1 - y_mat) * np.log(1 - h)
+    sumOfK = yLogH + yLogHMin
+    sumOfM = np.sum(sumOfK)
+    cost = -sumOfM / m
+
+    # cost = -np.sum((y_mat * np.log(h)) + ((1 - y_mat) * np.log(1 - h))) / m
+
+    return cost
 
 
 # ==== OPGAVE 3a ====
 def sigmoid_gradient(z):
-    # Retourneer hier de waarde van de afgeleide van de sigmoïdefunctie.
-    # Zie de opgave voor de exacte formule. Zorg ervoor dat deze werkt met
-    # scalaire waarden en met vectoren.
-
-    pass
+    gZ = sigmoid(z)
+    return (gZ * (1 - gZ))[0]
 
 
 # ==== OPGAVE 3b ====
@@ -86,13 +75,35 @@ def nn_check_gradients(Theta1, Theta2, X, y):
 
     Delta2 = np.zeros(Theta1.shape)
     Delta3 = np.zeros(Theta2.shape)
-    m = 1  # voorbeeldwaarde; dit moet je natuurlijk aanpassen naar de echte waarde van m
+    m = X.shape[0]
+
+    # region forward propagation
+
+    # Stap 1 - Input layer (L1)
+    a1 = np.c_[np.ones(X.shape[0]), X]  # Voeg enen toe op index 0
+
+    # Stap 2 - Hidden layer (L2)
+    z2 = np.dot(Theta1, a1.T)  # De sommatie van Theta1 a1
+    a2 = sigmoid(z2)  # De activatie (sigmoid) van z2
+    a2 = np.c_[np.ones(a2.shape[1]), a2.T]
+
+    # Stap 3 - Output layer (L3)
+    z3 = np.dot(Theta2, a2.T)  # De sommatie van Theta2 a2
+    a3 = sigmoid(z3).T  # De activatie (sigmoid) van z3
+
+    # endregion
+
+    # region backward propagation
 
     for i in range(m):
-        # YOUR CODE HERE
-        pass
+        deltaL3 = a3[i] - y[i]
+        deltaL2 = np.dot(deltaL3, Theta2) * sigmoid_gradient(z2.T[i])
+        Theta2 = Theta2 + np.dot(a2[i], deltaL3)  # reshape and T
+        Theta1 = Theta1 + np.dot(a1[i], deltaL2)
 
     Delta2_grad = Delta2 / m
     Delta3_grad = Delta3 / m
+
+    # endregion
 
     return Delta2_grad, Delta3_grad

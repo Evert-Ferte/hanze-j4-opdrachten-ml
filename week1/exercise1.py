@@ -24,12 +24,15 @@ with open('week1_data.pkl', 'rb') as f:
 
 m, n = data.shape
 
+print(data)
 # Enen toevoegen als eerste kolom van X, zodat we op elke regel een
 # vector hebben waarvan de grootte correspondeert met theta.
 m, n = data.shape
 X = np.c_[np.ones(m), data[:, [0]]]
 y = data[:, [1]]
 theta = np.zeros((2, 1))
+
+print(X)
 
 # ========================  OPGAVE 1 ========================
 print("\nOpgave 1: draw_graph")
