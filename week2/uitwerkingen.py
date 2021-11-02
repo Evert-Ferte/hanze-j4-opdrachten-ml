@@ -98,8 +98,21 @@ def nn_check_gradients(Theta1, Theta2, X, y):
     for i in range(m):
         deltaL3 = a3[i] - y[i]
         deltaL2 = np.dot(deltaL3, Theta2) * sigmoid_gradient(z2.T[i])
-        Theta2 = Theta2 + np.dot(a2[i], deltaL3)  # reshape and T
-        Theta1 = Theta1 + np.dot(a1[i], deltaL2)
+        print("deltaL2, deltaL3, Theta2", deltaL2.shape, deltaL3.shape, Theta2.shape)
+
+        rA2 = np.reshape(a2[i], (a2[i].shape[0], 1))
+        deltaL3 = np.reshape(deltaL3, (deltaL3.shape[0], 1))
+        rA1 = np.reshape(a1[i], (a1[i].shape[0], 1))
+        print("rA1 shape", rA1.shape)
+        deltaL2 = np.reshape(deltaL2, (deltaL2.shape[0], 1))
+
+        # Theta2 shape    = (10, 26)
+        # dot(delta3, a2) = (10, 26)
+        # Theta1 shape    = (25, 401
+        # dot(delta2, a1) = (26, 401)
+
+        Theta2 = Theta2 + np.dot(deltaL3, rA2.T)  # reshape and T
+        Theta1 = Theta1 + np.dot(deltaL2, rA1.T)
 
     Delta2_grad = Delta2 / m
     Delta3_grad = Delta3 / m

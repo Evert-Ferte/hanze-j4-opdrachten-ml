@@ -20,16 +20,9 @@ def gradient_descent(X, y, theta, alpha, num_iters):
     costs = []
 
     for _ in range(num_iters):
-        for j in range(n):  # TODO - Haal deze lus eruit, maak factorieel
-            # In steps:
-            # h = (np.dot(X, theta.T) - y)
-            # xj = X[:, [j]]
-            # sum = np.sum(h * xj)
-            # sumDivM = (sum / m)
-            # theta[0][j] = theta[0][j] - alpha * (sumDivM)
-
-            theta[0][j] = theta[0][j] - alpha * (np.sum((np.dot(X, theta.T) - y) * X[:, [j]]) / m)
+        theta[0] = theta[0] - (alpha * np.sum(((np.dot(X, theta.T) - y) * X), axis=0)) / m
         costs.append(compute_cost(X, y, theta.T))
+
     return theta, costs
 
 
